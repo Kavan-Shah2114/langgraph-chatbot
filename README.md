@@ -26,7 +26,7 @@ This project is designed to feel like a **mini ChatGPT**, with additional featur
 
 
 ```md
-https://github.com/<your-username>/<your-repo>/assets/<video-id>
+https://github.com/Kavan-Shah2114/langgraph-chatbot.git/assets/Video Project.mp4
 ```
 
 ---
@@ -95,49 +95,56 @@ Deletes:
 # 🏛️ **Architecture Overview**
 
 ### **System Architecture Diagram**
-
 ```
-                            ┌──────────────────────────┐
-                            │        Streamlit UI      │
-                            │ (Chat Window + Sidebar)  │
-                            └─────────────┬────────────┘
-                                          │
-                             User Input   │   AI Output (streaming)
-                                          ▼
-                   ┌──────────────────────────────────────────┐
-                   │      Chat Controller (app.py)             │
-                   │ Handles:                                   │
-                   │  • Threads                                 │
-                   │  • File uploads                            │
-                   │  • Auto-titles                             │
-                   │  • Streaming responses                     │
-                   │  • Per-user sessions                       │
-                   └─────────────┬─────────────────────────────┘
-                                 │
-                                 ▼
-                     ┌────────────────────────┐
-                     │  langgraph_backend.py   │
-                     │  • Gemini 2.5 Flash     │
-                     │  • Streaming generation │
-                     │  • RAG message builder  │
-                     └─────────────┬──────────┘
-                                   │
-                     Query + Context│
-                                   ▼
-                    ┌───────────────────────────┐
-                    │     Google Gemini API      │
-                    └───────────────────────────┘
+flowchart TD
 
-                     Document Search / Messages
-                                   ▲
-                                   │
-                 ┌─────────────────┴──────────────────┐
-                 │             PostgreSQL              │
-                 │  • users                            │
-                 │  • threads                          │
-                 │  • messages                         │
-                 │  • documents (RAG storage)          │
-                 └─────────────────────────────────────┘
+%% ==== UI LAYER ==== %%
+subgraph UI["🟦 Streamlit UI"]
+    A1["Chat Window"]
+    A2["File Upload (PDF/TXT/Images)"]
+    A3["Mode Selector (Chat / Code Assistant)"]
+end
+
+%% ==== APP LAYER ==== %%
+subgraph APP["🟩 app.py (Controller)"]
+    B1["Authentication"]
+    B2["Thread Management"]
+    B3["Auto Title Generation"]
+    B4["Per-thread KB Search"]
+    B5["Message History"]
+end
+
+%% ==== BACKEND ==== %%
+subgraph BACKEND["🟪 langgraph_backend.py"]
+    C1["Gemini Response Generator"]
+    C2["RAG Context Builder"]
+    C3["Streaming Output"]
+    C4["Title Generator"]
+end
+
+%% ==== GEMINI ==== %%
+subgraph GEMINI["⚫ Gemini 2.5 Flash Model API"]
+    D1["LLM Output"]
+end
+
+%% ==== DATABASE ==== %%
+subgraph DB["🟫 PostgreSQL Database"]
+    E1["users"]
+    E2["threads"]
+    E3["messages"]
+    E4["documents"]
+end
+
+UI --> APP
+APP --> BACKEND
+BACKEND --> GEMINI
+APP --> DB
+UI --> DB
+BACKEND --> DB
+GEMINI --> BACKEND
+BACKEND --> APP
+APP --> UI
+
 ```
 
 ---
