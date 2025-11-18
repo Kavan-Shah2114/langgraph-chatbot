@@ -1,0 +1,7 @@
+streamlit
+psycopg2-binary
+python-dotenv
+PyPDF2
+google-generativeai
+langgraph
+langchain-core

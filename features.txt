@@ -1,0 +1,9 @@
+RAG: Users upload PDFs/TXT, stored in documents table. Search uses Postgres full-text search (tsvector + plainto_tsquery) to find top matching docs which are prepended to the model prompt as DOCUMENT: context. This is practical and avoids external embedding infra.
+Modes / Personalities: MODES dictionary holds persona system prompts. The selected persona modifies the system instruction passed to the LLM.
+Export Chat: Sidebar export buttons allow downloading current conversation as Markdown or TXT.
+Suggested Replies: After user input, the model generates 3 short suggestions shown as quick buttons the user can click to re-send.
+File upload / multi-modal: PDFs and text files supported. PDFs are extracted with PyPDF2.
+Conversation analytics: Basic topic + sentiment prompt is sent to Gemini and returned in the sidebar.
+Save notes: Quick action to save last assistant message as a note tied to the thread.
+Persistence: Threads & topics are stored in Postgres. LangGraph still stores conversation checkpoints in memory (MemorySaver), while threads and docs are persisted externally.
+Export & Resume-ready: This showcases practical engineering choices (Postgres text search RAG, personas, exports) that look great on resume.
