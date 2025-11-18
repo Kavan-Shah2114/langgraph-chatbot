@@ -1,191 +1,183 @@
-# fetch.py
+import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASS = os.getenv("DB_PASSWORD")
+
 def get_connection():
     return psycopg2.connect(
-        host=os.getenv("PG_HOST", "localhost"),
-        port=os.getenv("PG_PORT", "5432"),
-        database=os.getenv("PG_DB"),
-        user=os.getenv("PG_USER"),
-        password=os.getenv("PG_PASS")
+        host=DB_HOST,
+        port=DB_PORT,
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS
     )
 
-# ------------- Users -------------
+# ---------------- USERS ----------------
+
+def authenticate_user(username, password):
+    conn = get_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        SELECT id, username FROM users
+        WHERE username=%s AND password=%s
+    """, (username, password))
+    
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+    return user
+
 def create_user(username, password):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO users (username, password)
         VALUES (%s, %s)
-        ON CONFLICT (username) DO NOTHING
     """, (username, password))
     conn.commit()
+    cur.close()
     conn.close()
 
-def authenticate_user(username, password):
-    conn = get_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
-    row = cur.fetchone()
-    conn.close()
-    return row
+# ---------------- THREADS ----------------
 
-# ------------- Threads -------------
-def ensure_threads_table():
+def add_thread_to_db(thread_id, title, user_id):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS threads (
-            thread_id TEXT PRIMARY KEY,
-            topic TEXT,
-            pinned BOOLEAN DEFAULT FALSE,
-            last_updated TIMESTAMP DEFAULT NOW(),
-            user_id INTEGER
-        );
-    """)
+        INSERT INTO threads (thread_id, topic, user_id)
+        VALUES (%s, %s, %s)
+    """, (thread_id, title, user_id))
     conn.commit()
-    conn.close()
-
-def add_thread_to_db(thread_id, topic, user_id):
-    ensure_threads_table()
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO threads (thread_id, topic, last_updated, user_id)
-        VALUES (%s, %s, NOW(), %s)
-        ON CONFLICT (thread_id) DO NOTHING
-    """, (thread_id, topic, user_id))
-    conn.commit()
+    cur.close()
     conn.close()
 
 def fetch_threads(user_id):
-    ensure_threads_table()
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("""
         SELECT thread_id AS id, topic, pinned, last_updated
         FROM threads
-        WHERE user_id = %s
+        WHERE user_id=%s
         ORDER BY pinned DESC, last_updated DESC
     """, (user_id,))
-    rows = cur.fetchall()
+    data = cur.fetchall()
+    cur.close()
     conn.close()
-    return rows
+    return data
+
+def delete_thread(thread_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM messages WHERE thread_id=%s", (thread_id,))
+    cur.execute("DELETE FROM documents WHERE thread_id=%s", (thread_id,))
+    cur.execute("DELETE FROM threads WHERE thread_id=%s", (thread_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
 
 def update_thread_topic(thread_id, topic):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE threads SET topic=%s, last_updated=NOW() WHERE thread_id=%s", (topic, thread_id))
+    cur.execute("""
+        UPDATE threads
+        SET topic=%s
+        WHERE thread_id=%s
+    """, (topic, thread_id))
     conn.commit()
+    cur.close()
     conn.close()
 
 def touch_thread(thread_id):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE threads SET last_updated=NOW() WHERE thread_id=%s", (thread_id,))
+    cur.execute("""
+        UPDATE threads
+        SET last_updated=NOW()
+        WHERE thread_id=%s
+    """, (thread_id,))
     conn.commit()
+    cur.close()
     conn.close()
 
-def set_thread_pinned(thread_id, pinned: bool):
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("UPDATE threads SET pinned=%s WHERE thread_id=%s", (pinned, thread_id))
-    conn.commit()
-    conn.close()
-
-def delete_thread(thread_id):
-    # delete thread cascades messages (if FK configured) and remove docs/notes:
-    conn = get_connection()
-    cur = conn.cursor()
-    # delete messages
-    cur.execute("DELETE FROM messages WHERE thread_id=%s", (thread_id,))
-    # delete documents linked to the thread
-    cur.execute("DELETE FROM documents WHERE thread_id=%s", (thread_id,))
-    # delete thread
-    cur.execute("DELETE FROM threads WHERE thread_id=%s", (thread_id,))
-    conn.commit()
-    conn.close()
-
-# ------------- Messages (persist chat history) -------------
-def ensure_messages_table():
+def set_thread_pinned(thread_id, state):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id SERIAL PRIMARY KEY,
-            thread_id TEXT,
-            role TEXT,
-            content TEXT,
-            created_at TIMESTAMP DEFAULT NOW()
-        );
-    """)
+        UPDATE threads SET pinned=%s WHERE thread_id=%s
+    """, (state, thread_id))
     conn.commit()
+    cur.close()
     conn.close()
 
+# ---------------- MESSAGES ----------------
+
 def save_message(thread_id, role, content):
-    ensure_messages_table()
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("INSERT INTO messages (thread_id, role, content) VALUES (%s, %s, %s)", (thread_id, role, content))
+    cur.execute("""
+        INSERT INTO messages (thread_id, role, content)
+        VALUES (%s, %s, %s)
+    """, (thread_id, role, content))
     conn.commit()
+    cur.close()
     conn.close()
 
 def load_messages(thread_id):
-    ensure_messages_table()
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT role, content FROM messages WHERE thread_id=%s ORDER BY created_at ASC", (thread_id,))
-    rows = cur.fetchall()
+    cur.execute("""
+        SELECT role, content
+        FROM messages
+        WHERE thread_id=%s
+        ORDER BY created_at ASC
+    """, (thread_id,))
+    data = cur.fetchall()
+    cur.close()
     conn.close()
-    return rows
+    return data
 
-# ------------- Documents / Knowledge Base (per-thread) -------------
-def ensure_documents_table():
+# ---------------- DOCUMENTS ----------------
+
+def save_document(title, content, thread_id):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS documents (
-            id SERIAL PRIMARY KEY,
-            title TEXT,
-            content TEXT,
-            content_tsv tsvector,
-            thread_id TEXT
-        );
-    """)
+        INSERT INTO documents (thread_id, title, content)
+        VALUES (%s, %s, %s)
+    """, (thread_id, title, content))
     conn.commit()
+    cur.close()
     conn.close()
 
-def save_document(title, content, thread_id=None):
-    ensure_documents_table()
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO documents (title, content, thread_id) VALUES (%s, %s, %s)", (title, content, thread_id))
-    conn.commit()
-    conn.close()
-
-def search_documents(query, thread_id=None, limit=3):
-    ensure_documents_table()
+def search_documents(query, thread_id, limit=10):
     conn = get_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    if thread_id:
+
+    # Always return all documents for thread if query is empty
+    if not query.strip():
         cur.execute("""
-            SELECT id, title, content FROM documents
-            WHERE thread_id = %s AND content_tsv @@ plainto_tsquery('english', %s)
-            ORDER BY ts_rank_cd(content_tsv, plainto_tsquery('english', %s)) DESC
+            SELECT title, content FROM documents
+            WHERE thread_id=%s
+            ORDER BY id DESC
             LIMIT %s
-        """, (thread_id, query, query, limit))
+        """, (thread_id, limit))
     else:
         cur.execute("""
-            SELECT id, title, content FROM documents
-            WHERE content_tsv @@ plainto_tsquery('english', %s)
-            ORDER BY ts_rank_cd(content_tsv, plainto_tsquery('english', %s)) DESC
+            SELECT title, content FROM documents
+            WHERE thread_id=%s
+              AND content ILIKE %s
             LIMIT %s
-        """, (query, query, limit))
-    rows = cur.fetchall()
+        """, (thread_id, f"%{query}%", limit))
+
+    data = cur.fetchall()
+    cur.close()
     conn.close()
-    return rows
+    return data

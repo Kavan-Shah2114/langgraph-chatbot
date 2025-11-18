@@ -50,4 +50,4 @@ END$$;
 -- GIN index for full-text search
 CREATE INDEX IF NOT EXISTS documents_tsv_idx ON documents USING GIN(content_tsv);
 
-SELECT * FROM users;
+SELECT * FROM documents;

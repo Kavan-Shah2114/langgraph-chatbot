@@ -1,47 +1,35 @@
-# langgraph_backend.py
-import os
-from dotenv import load_dotenv
 import google.generativeai as genai
 
-load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "models/gemini-2.5-flash")
-
-def generate_title_from_message(message):
-    """Return a short title (few-shot) using Gemini (non-stream)."""
-    model = genai.GenerativeModel(GEMINI_MODEL)
-    prompt = (
-        "Create a concise conversation title (3-6 words, no punctuation) based on the user's message.\n\n"
-        "Example:\nUser: Explain blockchain simply\nTitle: Blockchain explained\n\n"
-        "Example:\nUser: Help me write a resume for software engineer\nTitle: Software engineer resume tips\n\n"
-        f"User: {message}\nTitle:"
-    )
+def generate_title_from_message(text):
+    prompt = f"Generate a single, short, descriptive chat title (3–6 words) for the following text. Return ONLY the title with no surrounding text, prefixes, numbering, or introductory phrases: {text}"
+    model = genai.GenerativeModel("models/gemini-2.0-flash")
     resp = model.generate_content(prompt)
-    return (resp.text or "").strip().splitlines()[0][:100] if resp and getattr(resp, "text", None) else "New Chat"
+    return resp.text.strip()
 
-def generate_reply_stream(messages, kb_text="", mode="Chat"):
-    """
-    Stream generator for model replies. Yields chunk objects from SDK (each chunk has .text).
-    The app will iterate over it to stream token-by-token.
-    """
-    model = genai.GenerativeModel(GEMINI_MODEL)
+def generate_reply_stream(history, kb_text, mode):
+    formatted = ""
+    for m in history:
+        formatted += f"{m['role'].upper()}: {m['content']}\n\n"
 
-    # Compose instruction based on mode
+    mode_prompt = "You are a helpful AI assistant."
     if mode == "Code Assistant":
-        instruction = (
-            "You are a senior programming assistant. Provide runnable code examples, explain briefly, "
-            "and point out pitfalls. Prefer clear, tested snippets and mention required imports."
-        )
-    else:
-        instruction = "You are a helpful assistant. Keep responses clear and concise."
+        mode_prompt = "You are an expert coding assistant. Explain everything clearly."
 
-    convo = ""
-    for m in messages:
-        role = m.get("role", "user")
-        content = m.get("content", "")
-        convo += f"{role.capitalize()}: {content}\n"
+    final_prompt = f"""
+{mode_prompt}
 
-    prompt = f"{instruction}\n\nKnowledge:\n{kb_text}\n\nConversation:\n{convo}\nAssistant:"
+Conversation so far:
+{formatted}
 
-    # stream=True returns an iterator of pieces
-    return model.generate_content(prompt, stream=True)
+Relevant context:
+{kb_text}
+
+Respond and continue the conversation.
+"""
+
+    model = genai.GenerativeModel("models/gemini-2.0-flash")
+
+    return model.generate_content(
+        final_prompt,
+        stream=True
+    )
