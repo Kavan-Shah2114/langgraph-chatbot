@@ -2,7 +2,7 @@
 ---
 
 <p align="center">
-  <img src="assets/smartlang-banner-v2-dark.png" width="100%" alt="SmartLang Banner"/>
+  <img src="assets/smartlang-banner-v2-dark.png" width="70%" alt="SmartLang Banner"/>
 </p>
 
 ---
@@ -31,7 +31,7 @@ This project is designed to feel like a **mini ChatGPT**, with additional featur
 ## 🎥 Demo Video
 
 <video width="100%" controls>
-  <source src="Video Project.mp4" type="video/mp4">
+  <source src="assets/VideoProject.mp4" type="video/mp4">
 </video>
 
 ---
