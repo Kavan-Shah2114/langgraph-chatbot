@@ -2,7 +2,7 @@
 ---
 
 <p align="center">
-  <img src="assets/smartlang-banner-v2-dark.png" width="100%" style="max-height:230px; object-fit:cover; border-radius:12px;" alt="SmartLang Banner"/>
+  <img src="assets/smartlang-banner-v2-dark.png" width="100%" style="max-height:230px; object-fit:cover; border-radius:12px;" alt="SmartLang"/>
 </p>
 
 ---
