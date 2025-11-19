@@ -2,7 +2,7 @@
 ---
 
 <p align="center">
-  <img src="assets/smartlang-banner-v2-dark.png" width="100%" style="max-height:230px; object-fit:cover; border-radius:12px;" alt="SmartLang"/>
+  <img src="assets/smartlang-banner-v2-dark.png" width="100%" style="max-height:230px; object-fit:cover; border-radius:12px;" alt="SmartLang Chatbot"/>
 </p>
 
 ---
@@ -32,7 +32,7 @@ This project is designed to feel like a **mini ChatGPT**, with additional featur
 
 <p align="center">
   <a href="https://github.com/user-attachments/assets/10fe1ef5-c9d7-4cd0-91bc-2aa8eb369e96">
-    ▶️ Click here to watch the demo video
+    ▶️ Click here to watch the demo video of Chatbot
   </a>
 </p>
 
