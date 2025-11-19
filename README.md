@@ -2,7 +2,7 @@
 ---
 
 <p align="center">
-  <img src="assets/smartlang-banner-v2-dark.png" width="600" alt="SmartLang Chatbot"/>
+  <img src="assets/smartlang-banner-v2-dark.png" width="100%" alt="SmartLang Chatbot"/>
 </p>
 
 ---
