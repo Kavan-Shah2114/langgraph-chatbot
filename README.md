@@ -1,6 +1,12 @@
 
 ---
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Kavan-Shah2114/assets/master/smartlang-banner-v2-dark.png" width="100%" alt="SmartLang Banner"/>
+</p>
+
+---
+
 # 🌐 **SmartLang — AI-Powered Multi-User Chatbot with RAG, File Uploads & Streaming Responses**
 
 A modern, ChatGPT-style conversational AI built with **Streamlit**, **Gemini 2.5 Flash**, **PostgreSQL**, and **Retrieval-Augmented Generation (RAG)**.
@@ -25,8 +31,7 @@ This project is designed to feel like a **mini ChatGPT**, with additional featur
 ## 🎥 Demo Video
 
 <video width="100%" controls>
-  <source src="https://github.com/Kavan-Shah2114/langgraph-chatbot/assets/Video Project.mp4" type="video/mp4">
-  Your browser does not support the video tag.
+  <source src="https://github.com/Kavan-Shah2114/langgraph-chatbo/Video Project.mp4" type="video/mp4">
 </video>
 
 ---
