@@ -22,12 +22,12 @@ This project is designed to feel like a **mini ChatGPT**, with additional featur
 
 ---
 
-# 🎥 **UI Demo Video**
+## 🎥 Demo Video
 
-
-```md
-https://github.com/Kavan-Shah2114/langgraph-chatbot.git/assets/Video Project.mp4
-```
+<video width="100%" controls>
+  <source src="https://github.com/Kavan-Shah2114/langgraph-chatbot/assets/Video Project.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ---
 
@@ -92,42 +92,36 @@ Deletes:
 
 ---
 
-# 🏛️ **Architecture Overview**
+## 🏛️ Architecture Diagram
 
-### **System Architecture Diagram**
-```
+```mermaid
 flowchart TD
 
-%% ==== UI LAYER ==== %%
 subgraph UI["🟦 Streamlit UI"]
     A1["Chat Window"]
     A2["File Upload (PDF/TXT/Images)"]
     A3["Mode Selector (Chat / Code Assistant)"]
 end
 
-%% ==== APP LAYER ==== %%
-subgraph APP["🟩 app.py (Controller)"]
+subgraph APP["🟩 app.py Controller"]
     B1["Authentication"]
-    B2["Thread Management"]
+    B2["Thread Mgmt"]
     B3["Auto Title Generation"]
-    B4["Per-thread KB Search"]
+    B4["RAG Search"]
     B5["Message History"]
 end
 
-%% ==== BACKEND ==== %%
 subgraph BACKEND["🟪 langgraph_backend.py"]
-    C1["Gemini Response Generator"]
+    C1["Gemini Reply Generator"]
     C2["RAG Context Builder"]
     C3["Streaming Output"]
     C4["Title Generator"]
 end
 
-%% ==== GEMINI ==== %%
-subgraph GEMINI["⚫ Gemini 2.5 Flash Model API"]
+subgraph GEMINI["⚫ Gemini 2.5 Flash API"]
     D1["LLM Output"]
 end
 
-%% ==== DATABASE ==== %%
 subgraph DB["🟫 PostgreSQL Database"]
     E1["users"]
     E2["threads"]
@@ -139,12 +133,9 @@ UI --> APP
 APP --> BACKEND
 BACKEND --> GEMINI
 APP --> DB
-UI --> DB
 BACKEND --> DB
 GEMINI --> BACKEND
-BACKEND --> APP
 APP --> UI
-
 ```
 
 ---
