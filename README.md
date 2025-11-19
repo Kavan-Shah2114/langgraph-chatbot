@@ -2,7 +2,7 @@
 ---
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Kavan-Shah2114/assets/master/smartlang-banner-v2-dark.png" width="100%" alt="SmartLang Banner"/>
+  <img src="https://raw.githubusercontent.com/Kavan-Shah2114/assets/smartlang-banner-v2-dark.png" width="100%" alt="SmartLang Banner"/>
 </p>
 
 ---
